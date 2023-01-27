@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 // OpenZeppelin Contracts (last updated v4.8.0) (token/ERC20/ERC20.sol)
+//my solution
 
 pragma solidity ^0.8.0;
 
@@ -11,7 +12,6 @@ contract ERC20 is IERC20 {
     mapping(address => mapping(address => uint256)) private _allowances;
 
     uint256 private _totalSupply;
-
     string private _name;
     string private _symbol;
 
@@ -84,6 +84,14 @@ contract ERC20 is IERC20 {
     
          /* <------ Your code goes here ------->
          */
+         require(to != address(0),"There is no viable receiver account!");
+         require(_balances[msg.sender]>=amount,"The sender account cannot cover the cost!");
+        
+             _balances[msg.sender]=_balances[msg.sender]-amount;
+             _balances[to]=_balances[to]+ amount;
+             emit Transfer(msg.sender, to, amount);
+             return true;
+    
        
     }
 
@@ -107,6 +115,11 @@ contract ERC20 is IERC20 {
     function approve(address spender, uint256 amount) public virtual override returns (bool) {
          /* <------ Your code goes here ------->
          */
+         require(spender!=address(0),"No viable spender!");
+         require((_allowances[msg.sender][spender]==0) || (amount == 0),"_allowances must be reset to zero firstly!!");
+         _allowances[msg.sender][spender]= amount;
+         emit Approval(msg.sender, spender, amount);
+         return true;
     }
 
     /**
@@ -128,6 +141,22 @@ contract ERC20 is IERC20 {
     function transferFrom(address from, address to, uint256 amount) public virtual override returns (bool) {
           /* <------ Your code goes here ------->
          */
+         require(from != address(0) && to !=address(0), "There is no viable sender and receiver account!");
+         require(_balances[from]> amount && _allowances[from][msg.sender]> amount, "Cannot cover the cost!");
+
+         //uint256 MAX_INT = 2**256 - 1;
+         _balances[from]=_balances[from]-amount;
+         _balances[to]=_balances[to]+amount;
+         emit Transfer(from, to, amount);
+         if(_allowances[from][msg.sender]==type(uint256).max){
+             return true;
+         }else{
+             _allowances[from][msg.sender]=_allowances[from][msg.sender]-amount;
+             emit Approval(from, msg.sender, amount);
+             return true;
+
+         }
+
     }
 
     /**
@@ -191,6 +220,11 @@ contract ERC20 is IERC20 {
        
          /* <------ Your code goes here ------->
          */
+         require(from != address(0) && to != address(0),"there is no viable sender address or receiver address or both !");
+         require(_balances[from]>=amount,"spender account cannot cover the cost.");
+         _balances[from]=_balances[from]-amount;
+         _balances[to]=_balances[to]+amount;
+         emit Transfer(from,to,amount);
     }
 
     /** @dev Creates `amount` tokens and assigns them to `account`, increasing
